@@ -1,0 +1,23 @@
+.env
+
+# Build and dependency output
+**/.DS_Store
+**/node_modules/
+**/target/
+**/vendor/
+**/__pycache__/
+**/bin/
+**/obj/
+
+# Generated measurements, reports and campaign state (kept locally, never committed)
+results/raw/*
+!results/raw/.gitkeep
+results/processed/*
+!results/processed/.gitkeep
+reports/*
+!reports/charts/
+reports/charts/*
+!reports/charts/.gitkeep
+verification/*
+!verification/.gitkeep
+.benchmark-lock/

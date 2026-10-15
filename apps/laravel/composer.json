@@ -1,0 +1,1 @@
+{"name":"benchmark/laravel","type":"project","require":{"php":"^8.3","laravel/framework":"12.3.0"},"config":{"platform":{"php":"8.3.19"},"sort-packages":true,"optimize-autoloader":true,"audit":{"block-insecure":false}},"autoload":{"psr-4":{"App\\":"app/"}}}

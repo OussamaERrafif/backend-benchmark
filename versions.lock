@@ -1,0 +1,15 @@
+{
+  "springboot": {"framework": "3.4.4", "runtime": "21.0.6+7", "pool": "HikariCP total 20"},
+  "fastapi": {"framework": "0.115.12", "runtime": "3.12.9", "uvicorn": "0.34.0", "asyncpg": "0.30.0", "pool": "asyncpg total <=20, split across workers"},
+  "laravel": {"framework": "12.3.0", "runtime": "8.3.19", "web_server": "FrankenPHP 1.4.4 classic mode, PHP ZTS", "pool": "persistent PDO, one per PHP thread (1/2/4); practical exception to 20"},
+  "express": {"framework": "4.21.2", "runtime": "22.14.0", "pg": "8.14.1", "pool": "pg total <=20, split across workers"},
+  "fastify": {"framework": "5.2.1", "runtime": "22.14.0", "pg": "8.14.1", "pool": "pg total <=20, split across workers"},
+  "aspnet": {"framework": "8.0.14", "runtime": "8.0.14", "npgsql": "8.0.6", "pool": "Npgsql total 20"},
+  "fiber": {"framework": "2.52.6", "runtime": "1.24.1", "pgx": "5.7.2", "pool": "pgx total 20"},
+  "axum": {"framework": "0.8.1", "runtime": "1.85.1", "sqlx": "0.8.3", "pool": "sqlx total 20"},
+  "postgres": "17.4",
+  "k6": "0.57.0",
+  "analysis_python": "3.12.9",
+  "docker_cli": "28.3.2",
+  "images": {"java_build": "maven:3.9.9-eclipse-temurin-21", "java_runtime": "eclipse-temurin:21.0.6_7-jre-jammy", "python": "python:3.12.9-slim-bookworm", "php": "dunglas/frankenphp:1.4.4-php8.3-bookworm@sha256:285e677100605bd7ea7d2dbea36a4443bf4d4f0caf33e706252dabebea1a1c53", "composer": "composer:2.8.6", "node": "node:22.14.0-bookworm-slim", "dotnet_sdk": "mcr.microsoft.com/dotnet/sdk:8.0.407", "dotnet_runtime": "mcr.microsoft.com/dotnet/aspnet:8.0.14", "go": "golang:1.24.1-bookworm", "rust": "rust:1.85.1-bookworm", "debian": "debian:bookworm-20250317-slim", "postgres": "postgres:17.4-bookworm", "k6": "grafana/k6:0.57.0", "docker_cli": "docker:28.3.2-cli"}
+}

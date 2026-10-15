@@ -1,0 +1,1 @@
+{"name":"benchmark-fastify","version":"1.0.0","private":true,"type":"module","dependencies":{"fastify":"5.2.1","pg":"8.14.1"}}

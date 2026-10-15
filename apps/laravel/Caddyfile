@@ -1,0 +1,14 @@
+{
+	admin off
+	auto_https off
+	frankenphp {
+		num_threads {$APP_WORKERS:1}
+	}
+	log {
+		output discard
+	}
+}
+:8080 {
+	root * /app/public
+	php_server
+}

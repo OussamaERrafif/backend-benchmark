@@ -1,0 +1,138 @@
+name: backend-benchmark
+
+x-backend: &backend
+  init: true
+  cpus: ${BACKEND_CPU:-1}
+  mem_limit: ${BACKEND_RAM:-512m}
+  memswap_limit: ${BACKEND_RAM:-512m}
+  networks: [benchmark-net]
+  ports: ["127.0.0.1:8080:8080"]
+  volumes: ["./fixtures:/fixtures:ro"]
+  environment: &app-env
+    DATABASE_URL: postgresql://${POSTGRES_USER:-benchmark}:${POSTGRES_PASSWORD:-benchmark}@postgres:5432/${POSTGRES_DB:-benchmark}
+    POSTGRES_DB: ${POSTGRES_DB:-benchmark}
+    POSTGRES_USER: ${POSTGRES_USER:-benchmark}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-benchmark}
+    DB_POOL_SIZE: ${DB_POOL_SIZE:-20}
+    APP_WORKERS: ${APP_WORKERS:-1}
+    GOMAXPROCS: ${APP_WORKERS:-1}
+    TOKIO_WORKER_THREADS: ${APP_WORKERS:-1}
+  depends_on:
+    postgres: {condition: service_healthy}
+  restart: "no"
+
+services:
+  postgres:
+    image: postgres:17.4-bookworm
+    cpus: ${POSTGRES_CPU:-1}
+    mem_limit: ${POSTGRES_RAM:-1g}
+    memswap_limit: ${POSTGRES_RAM:-1g}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-benchmark}
+      POSTGRES_USER: ${POSTGRES_USER:-benchmark}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-benchmark}
+    command: ["postgres", "-c", "max_connections=100", "-c", "shared_buffers=256MB", "-c", "log_statement=none"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./database:/database:ro
+    networks: [benchmark-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+  springboot:
+    <<: *backend
+    profiles: [springboot]
+    image: backend-benchmark-springboot:1.0.0
+    build: {context: ., dockerfile: apps/springboot/Dockerfile}
+  fastapi:
+    <<: *backend
+    profiles: [fastapi]
+    image: backend-benchmark-fastapi:1.0.0
+    build: {context: ., dockerfile: apps/fastapi/Dockerfile}
+  laravel:
+    <<: *backend
+    profiles: [laravel]
+    image: backend-benchmark-laravel:1.0.0
+    build: {context: ., dockerfile: apps/laravel/Dockerfile}
+    # The base image probes Caddy's admin port; this benchmark disables that port.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 4s
+      retries: 3
+  express:
+    <<: *backend
+    profiles: [express]
+    image: backend-benchmark-express:1.0.0
+    build: {context: ., dockerfile: apps/express/Dockerfile}
+  fastify:
+    <<: *backend
+    profiles: [fastify]
+    image: backend-benchmark-fastify:1.0.0
+    build: {context: ., dockerfile: apps/fastify/Dockerfile}
+  aspnet:
+    <<: *backend
+    profiles: [aspnet]
+    image: backend-benchmark-aspnet:1.0.0
+    build: {context: ., dockerfile: apps/aspnet/Dockerfile}
+  fiber:
+    <<: *backend
+    profiles: [fiber]
+    image: backend-benchmark-fiber:1.0.0
+    build: {context: ., dockerfile: apps/fiber/Dockerfile}
+  axum:
+    <<: *backend
+    profiles: [axum]
+    image: backend-benchmark-axum:1.0.0
+    build: {context: ., dockerfile: apps/axum/Dockerfile}
+  k6:
+    image: grafana/k6:0.57.0
+    profiles: [tools]
+    cpus: ${K6_CPU:-1}
+    mem_limit: ${K6_RAM:-512m}
+    memswap_limit: ${K6_RAM:-512m}
+    networks: [benchmark-net]
+    user: "0:0"
+    volumes:
+      - ./load-tests:/tests:ro
+      - ./results/raw:/results
+    environment:
+      K6_NO_USAGE_REPORT: "true"
+  runner:
+    image: backend-benchmark-tools:1.0.0
+    profiles: [tools]
+    build: {context: ., dockerfile: analysis/Dockerfile}
+    working_dir: /workspace
+    entrypoint: ["python", "scripts/runner.py"]
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [benchmark-net]
+  analysis:
+    image: backend-benchmark-tools:1.0.0
+    profiles: [tools]
+    working_dir: /workspace
+    command: ["python", "analysis/pipeline.py"]
+    volumes: [".:/workspace"]
+  research:
+    image: backend-benchmark-tools:1.0.0
+    profiles: [tools]
+    container_name: backend-benchmark-research
+    init: true
+    restart: unless-stopped
+    working_dir: /workspace
+    entrypoint: ["python", "scripts/campaign.py"]
+    command: ["--profiles", "standard"]
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [benchmark-net]
+
+networks:
+  benchmark-net: {name: benchmark-net}
+volumes:
+  postgres-data:
