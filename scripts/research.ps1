@@ -10,8 +10,9 @@ try {
     }
     $computer = Get-CimInstance Win32_ComputerSystem
     $processor = Get-CimInstance Win32_Processor
-    $commit = & git rev-parse HEAD 2>$null
-    if ($LASTEXITCODE -ne 0) { $commit = $null }
+    # Windows PowerShell treats git's stderr as terminating under 'Stop'; a checkout without commits is fine.
+    $commit = $null
+    try { $commit = & git rev-parse HEAD 2>$null; if ($LASTEXITCODE -ne 0) { $commit = $null } } catch { $commit = $null }
     @{ os = [Environment]::OSVersion.VersionString; architecture = $env:PROCESSOR_ARCHITECTURE; cpu_model = @($processor.Name); logical_cpus = $computer.NumberOfLogicalProcessors; memory_gb = $computer.TotalPhysicalMemory / 1GB; benchmark_git_commit = $commit; date = [DateTime]::UtcNow.ToString('o') } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath verification/host-native.json -Encoding utf8
     $awakePath = Join-Path $workspace 'verification/research-awake.json'
     $awakeScript = Join-Path $PSScriptRoot 'research-awake.ps1'
